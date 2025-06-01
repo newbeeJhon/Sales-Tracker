@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sales Tracker App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            font-size: clamp(14px, 1.2vw, 16px);
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative; /* for notification positioning */
+        }
+        h2 {
+            text-align: center;
+            font-size: clamp(1.6rem, 4vw, 2rem);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+        }
+        input, select, button {
+            padding: clamp(8px, 1vw, 10px);
+            margin: 5px 0 15px 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, select:focus, button:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-row > * {
+            flex: 1 1 150px;
+        }
+        .table-wrapper {
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.75rem, 1vw, 1rem);
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        #chartContainer {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow: hidden;
+        }
+        #salesChart {
+            width: 100% !important;
+            height: 250px !important;
+        }
+        /* Notification style */
+        #notification {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4caf50; /* green */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        #notification.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Lookup section */
+        #lookupSection {
+            margin-top: 40px;
+            border-top: 2px solid #4caf50;
+            padding-top: 20px;
+        }
+        #lookupResults {
+            margin-top: 20px;
+        }
+        #lookupTotal {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+        }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+            }
+            .form-row > * {
+                flex: 1 1 100%;
+            }
+        }
+        @media (max-width: 400px) {
+            th, td {
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="notification"></div> <!-- Notification container -->
+
+    <h2>Sales Tracker App</h2>
+
+    <input type="text" id="customerName" placeholder="Customer Name" aria-label="Customer Name" />
+
+    <div class="form-row">
+        <select id="block" aria-label="Select Block">
+            <option value="">Select Block</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+            <option value="19">19</option><option value="20">20</option><option value="21">21</option>
+            <option value="22">22</option><option value="23">23</option><option value="24">24</option>
+            <option value="25">25</option><option value="26">26</option><option value="27">27</option>
+            <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+        </select>
+
+        <select id="lot" aria-label="Select Lot">
+            <option value="">Select Lot</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+            <option value="19">19</option><option value="20">20</option><option value="21">21</option>
+            <option value="22">22</option><option value="23">23</option><option value="24">24</option>
+            <option value="25">25</option><option value="26">26</option><option value="27">27</option>
+            <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+        </select>
+    </div>
+
+    <input type="number" id="units" placeholder="Units (₱25 each)" min="1" aria-label="Units" />
+    <div><strong>Total: ₱<span id="totalAmount">0</span></strong></div>
+    <button onclick="addSale()">Submit</button>
+
+    <div class="table-wrapper" aria-label="Sales records">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Block</th>
+                    <th>Lot</th>
+                    <th>Units</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="chartContainer">
+        <canvas id="salesChart"></canvas>
+    </div>
+
+    <div id="lookupSection" aria-label="Sales lookup section">
+        <h3>Lookup Sales</h3>
+        <div class="form-row">
+            <label for="fromDate">From date:</label>
+            <input type="date" id="fromDate" aria-describedby="fromDateLabel" />
+            <label for="toDate">To date:</label>
+            <input type="date" id="toDate" aria-describedby="toDateLabel" />
+            <button onclick="lookupSales()">Lookup</button>
+        </div>
+        <div id="lookupTotal" role="region" aria-live="polite"></div>
+        <div id="lookupResults"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
+
+    function updateTotal() {
+        const units = document.getElementById('units').value;
+        document.getElementById('totalAmount').textContent = units ? units * 25 : 0;
+    }
+
+    document.getElementById('units').addEventListener('input', updateTotal);
+
+    // Show notification function
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    function addSale() {
+        const name = document.getElementById('customerName').value.trim();
+        const block = document.getElementById('block').value;
+        const lot = document.getElementById('lot').value;
+        const units = parseInt(document.getElementById('units').value, 10);
+        if (!name || !block || !lot || !units || units <= 0) {
+            alert('Please fill all fields with valid values');
+            return;
+        }
+        const total = units * 25;
+        const date = new Date().toISOString().split('T')[0];
+
+        const sale = { name, block, lot, units, total, date };
+        salesData.push(sale);
+        localStorage.setItem('salesData', JSON.stringify(salesData));
+        renderTable();
+        renderChart();
+
+        // Clear inputs
+        document.getElementById('customerName').value = '';
+        document.getElementById('block').value = '';
+        document.getElementById('lot').value = '';
+        document.getElementById('units').value = '';
+        updateTotal();
+
+        // Clear lookup results on new sale
+        document.getElementById('lookupResults').innerHTML = '';
+        document.getElementById('lookupTotal').textContent = '';
+
+        showNotification('Sale added successfully!');
+    }
+
+    function deleteSale(index) {
+        salesData.splice(index, 1);
+        localStorage.setItem('salesData', JSON.stringify(salesData));
+        renderTable();
+        renderChart();
+
+        // Clear lookup results on deletion
+        document.getElementById('lookupResults').innerHTML = '';
+        document.getElementById('lookupTotal').textContent = '';
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('salesTableBody');
+        tbody.innerHTML = '';
+        salesData.forEach((sale, index) => {
+            const row = `<tr>
+                <td>${sale.name}</td>
+                <td>${sale.block}</td>
+                <td>${sale.lot}</td>
+                <td>${sale.units}</td>
+                <td>₱${sale.total}</td>
+                <td>${sale.date}</td>
+                <td><button onclick="deleteSale(${index})" aria-label="Delete sale of ${sale.name} on ${sale.date}">Delete</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const dateTotals = {};
+        salesData.forEach(sale => {
+            dateTotals[sale.date] = (dateTotals[sale.date] || 0) + parseFloat(sale.total);
+        });
+
+        const labels = Object.keys(dateTotals).sort();
+        const data = labels.map(label => dateTotals[label]);
+
+        if (window.salesChartInstance) window.salesChartInstance.destroy();
+
+        window.salesChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily Sales (₱)',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    function lookupSales() {
+        const start = document.getElementById('fromDate').value;
+        const end = document.getElementById('toDate').value;
+        const resultsDiv = document.getElementById('lookupResults');
+        const totalDiv = document.getElementById('lookupTotal');
+        resultsDiv.innerHTML = '';
+        totalDiv.textContent = '';
+
+        if (!start || !end) {
+            alert('Please select both From and To dates.');
+            return;
+        }
+        if (start > end) {
+            alert('From date cannot be later than To date.');
+            return;
+        }
+
+        const matchedSales = salesData.filter(sale => sale.date >= start && sale.date <= end);
+
+        if (matchedSales.length === 0) {
+            resultsDiv.innerHTML = `<p>No sales found between <strong>${start}</strong> and <strong>${end}</strong>.</p>`;
+            totalDiv.textContent = '';
+            return;
+        }
+
+        let tableHTML = `<div class="table-wrapper" aria-label="Lookup results for date range">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Block</th>
+                        <th>Lot</th>
+                        <th>Units</th>
+                        <th>Total</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        let totalSales = 0;
+        matchedSales.forEach(sale => {
+            tableHTML += `<tr>
+                <td>${sale.name}</td>
+                <td>${sale.block}</td>
+                <td>${sale.lot}</td>
+                <td>${sale.units}</td>
+                <td>₱${sale.total}</td>
+                <td>${sale.date}</td>
+            </tr>`;
+            totalSales += sale.total;
+        });
+
+        tableHTML += `</tbody></table></div>`;
+        resultsDiv.innerHTML = tableHTML;
+        totalDiv.textContent = `Overall Total Sales: ₱${totalSales}`;
+    }
+
+    // Initial rendering on page load
+    renderTable();
+    renderChart();
+</script>
+</body>
+</html>
