@@ -19,7 +19,7 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative; /* for notification positioning */
+            position: relative;
         }
         h2 {
             text-align: center;
@@ -94,13 +94,12 @@
             width: 100% !important;
             height: 250px !important;
         }
-        /* Notification style */
         #notification {
             position: absolute;
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #4caf50; /* green */
+            background-color: #4caf50;
             color: white;
             padding: 12px 20px;
             border-radius: 4px;
@@ -115,7 +114,6 @@
             opacity: 1;
             pointer-events: auto;
         }
-        /* Lookup section */
         #lookupSection {
             margin-top: 40px;
             border-top: 2px solid #4caf50;
@@ -129,7 +127,6 @@
             font-weight: bold;
             font-size: clamp(1rem, 1.2vw, 1.2rem);
         }
-        /* Responsive adjustments */
         @media (max-width: 600px) {
             .form-row {
                 flex-direction: column;
@@ -147,43 +144,26 @@
 </head>
 <body>
 <div class="container">
-    <div id="notification"></div> <!-- Notification container -->
+    <div id="notification"></div>
 
     <h2>Sales Tracker App</h2>
 
     <input type="text" id="customerName" placeholder="Customer Name" aria-label="Customer Name" />
 
     <div class="form-row">
-        <select id="block" aria-label="Select Block">
-            <option value="">Select Block</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
-            <option value="19">19</option><option value="20">20</option><option value="21">21</option>
-            <option value="22">22</option><option value="23">23</option><option value="24">24</option>
-            <option value="25">25</option><option value="26">26</option><option value="27">27</option>
-            <option value="28">28</option><option value="29">29</option><option value="30">30</option>
-        </select>
-
-        <select id="lot" aria-label="Select Lot">
-            <option value="">Select Lot</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
-            <option value="19">19</option><option value="20">20</option><option value="21">21</option>
-            <option value="22">22</option><option value="23">23</option><option value="24">24</option>
-            <option value="25">25</option><option value="26">26</option><option value="27">27</option>
-            <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+        <select id="block" aria-label="Select Block"></select>
+        <select id="lot" aria-label="Select Lot"></select>
+        <select id="price" aria-label="Select Price">
+            <option value="5">₱5</option>
+            <option value="10">₱10</option>
+            <option value="15">₱15</option>
+            <option value="20">₱20</option>
+            <option value="25" selected>₱25</option>
+            <option value="30">₱30</option>
         </select>
     </div>
 
-    <input type="number" id="units" placeholder="Units (₱25 each)" min="1" aria-label="Units" />
+    <input type="number" id="units" placeholder="Units" min="1" aria-label="Units" />
     <div><strong>Total: ₱<span id="totalAmount">0</span></strong></div>
     <button onclick="addSale()">Submit</button>
 
@@ -195,6 +175,7 @@
                     <th>Block</th>
                     <th>Lot</th>
                     <th>Units</th>
+                    <th>Price</th>
                     <th>Total</th>
                     <th>Date</th>
                     <th>Action</th>
@@ -212,12 +193,12 @@
         <h3>Lookup Sales</h3>
         <div class="form-row">
             <label for="fromDate">From date:</label>
-            <input type="date" id="fromDate" aria-describedby="fromDateLabel" />
+            <input type="date" id="fromDate" />
             <label for="toDate">To date:</label>
-            <input type="date" id="toDate" aria-describedby="toDateLabel" />
+            <input type="date" id="toDate" />
             <button onclick="lookupSales()">Lookup</button>
         </div>
-        <div id="lookupTotal" role="region" aria-live="polite"></div>
+        <div id="lookupTotal"></div>
         <div id="lookupResults"></div>
     </div>
 </div>
@@ -226,14 +207,29 @@
 <script>
     let salesData = JSON.parse(localStorage.getItem('salesData')) || [];
 
+    function populateSelect(id, max) {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="">Select ' + id.charAt(0).toUpperCase() + id.slice(1) + '</option>';
+        for (let i = 1; i <= max; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            select.appendChild(option);
+        }
+    }
+
+    populateSelect('block', 80);
+    populateSelect('lot', 40);
+
     function updateTotal() {
         const units = document.getElementById('units').value;
-        document.getElementById('totalAmount').textContent = units ? units * 25 : 0;
+        const price = document.getElementById('price').value;
+        document.getElementById('totalAmount').textContent = units ? units * price : 0;
     }
 
     document.getElementById('units').addEventListener('input', updateTotal);
+    document.getElementById('price').addEventListener('change', updateTotal);
 
-    // Show notification function
     function showNotification(message) {
         const notification = document.getElementById('notification');
         notification.textContent = message;
@@ -247,28 +243,28 @@
         const name = document.getElementById('customerName').value.trim();
         const block = document.getElementById('block').value;
         const lot = document.getElementById('lot').value;
+        const price = parseInt(document.getElementById('price').value, 10);
         const units = parseInt(document.getElementById('units').value, 10);
         if (!name || !block || !lot || !units || units <= 0) {
             alert('Please fill all fields with valid values');
             return;
         }
-        const total = units * 25;
+        const total = units * price;
         const date = new Date().toISOString().split('T')[0];
 
-        const sale = { name, block, lot, units, total, date };
+        const sale = { name, block, lot, price, units, total, date };
         salesData.push(sale);
         localStorage.setItem('salesData', JSON.stringify(salesData));
         renderTable();
         renderChart();
 
-        // Clear inputs
         document.getElementById('customerName').value = '';
         document.getElementById('block').value = '';
         document.getElementById('lot').value = '';
+        document.getElementById('price').value = '25';
         document.getElementById('units').value = '';
         updateTotal();
 
-        // Clear lookup results on new sale
         document.getElementById('lookupResults').innerHTML = '';
         document.getElementById('lookupTotal').textContent = '';
 
@@ -281,7 +277,6 @@
         renderTable();
         renderChart();
 
-        // Clear lookup results on deletion
         document.getElementById('lookupResults').innerHTML = '';
         document.getElementById('lookupTotal').textContent = '';
     }
@@ -295,6 +290,7 @@
                 <td>${sale.block}</td>
                 <td>${sale.lot}</td>
                 <td>${sale.units}</td>
+                <td>₱${sale.price}</td>
                 <td>₱${sale.total}</td>
                 <td>${sale.date}</td>
                 <td><button onclick="deleteSale(${index})" aria-label="Delete sale of ${sale.name} on ${sale.date}">Delete</button></td>
@@ -332,21 +328,10 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        beginAtZero: true
-                    },
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 0
-                        }
-                    }
+                    y: { beginAtZero: true },
+                    x: { ticks: { maxRotation: 45, minRotation: 0 } }
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+                plugins: { legend: { display: false } }
             }
         });
     }
@@ -372,23 +357,12 @@
 
         if (matchedSales.length === 0) {
             resultsDiv.innerHTML = `<p>No sales found between <strong>${start}</strong> and <strong>${end}</strong>.</p>`;
-            totalDiv.textContent = '';
             return;
         }
 
-        let tableHTML = `<div class="table-wrapper" aria-label="Lookup results for date range">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Block</th>
-                        <th>Lot</th>
-                        <th>Units</th>
-                        <th>Total</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+        let tableHTML = `<div class="table-wrapper"><table><thead>
+            <tr><th>Name</th><th>Block</th><th>Lot</th><th>Units</th><th>Price</th><th>Total</th><th>Date</th></tr>
+            </thead><tbody>`;
 
         let totalSales = 0;
         matchedSales.forEach(sale => {
@@ -397,6 +371,7 @@
                 <td>${sale.block}</td>
                 <td>${sale.lot}</td>
                 <td>${sale.units}</td>
+                <td>₱${sale.price}</td>
                 <td>₱${sale.total}</td>
                 <td>${sale.date}</td>
             </tr>`;
@@ -408,7 +383,6 @@
         totalDiv.textContent = `Overall Total Sales: ₱${totalSales}`;
     }
 
-    // Initial rendering on page load
     renderTable();
     renderChart();
 </script>
